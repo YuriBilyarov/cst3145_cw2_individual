@@ -68,4 +68,4 @@ app.use(function (request, response) {
     response.status(404).send("Page not found!");
 });
 
-app.listen(3000);
+app.listen(process.env.PORT || 3000);
