@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>CST3145_Group1_CW2</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <style>
+        .item{
+            float: left;
+            padding-right: 20px;
+            margin-right: 20px;
+            border-style: solid;
+            border-color: lightblue;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="app">
+        <div class="item" v-for="lesson in lessons">
+            <ul>
+                <li>topic: {{lesson.topic}}</li>
+                <li>location: {{lesson.location}}</li>
+                <li>price: {{lesson.price}}</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+
+        let app = new Vue({
+            el: '#app',
+            data: {
+                lessons: [],
+            },
+            created: function () {
+                fetch('http://localhost:3000/lessons').then(
+                    function (response) {
+                        response.json().then(
+                            function (lessons) {
+                                app.lessons = lessons;
+                            });
+                    })
+            }
+
+        });
+
+    </script>
+
+</body>
+
+</html>
