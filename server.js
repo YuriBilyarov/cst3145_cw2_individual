@@ -35,6 +35,7 @@ async function getLessons() {
     // Connect the client to the server
     await client.connect();
     console.log("client connected to server");
+    console.log(JSON.stringify(client.db('booking_system').collection('lesson').find()));
     return JSON.stringify(client.db('booking_system').collection('lesson').find());
   } finally {
     // Ensures that the client will close when you finish/error
