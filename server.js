@@ -35,6 +35,8 @@ async function getLessons() {
     // Connect the client to the server
     await client.connect();
     console.log("client connected to server");
+    console.log(JSON.stringify(client.db().admin().listDatabases()));
+    console.log(JSON.stringify(client.db('booking_system').listCollections()));
     console.log(JSON.stringify(client.db('booking_system').collection('lesson').find()));
     return JSON.stringify(client.db('booking_system').collection('lesson').find());
   } finally {
