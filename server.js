@@ -15,8 +15,6 @@ async function run() {
     await client.connect();
     console.log("client connected to server");
     await listDatabases(client);
-    // Establish and verify connection
-    // await client.db("admin").command({ ping: 1 });
     console.log("client connectd to database");
   } finally {
     // Ensures that the client will close when you finish/error
@@ -31,23 +29,19 @@ async function listDatabases(client){
     databasesList.databases.forEach(db => console.log(` - ${db.name}`));
 };
 
-// run().catch(console.dir);
-
-
-
-// let db;
-// MongoClient.connect("mongodb+srv://admin:admin@cst3145-cluster.oxa8f.mongodb.net/booking_system?retryWrites=true&w=majority", (err, client) => {
-//     db = client.db("booking_system");
-// });
-
-let lessons = [
-    { 'topic': 'math', 'location': 'London', 'price': 100 },
-    { 'topic': 'math', 'location': 'Liverpool', 'price': 80 },
-    { 'topic': 'math', 'location': 'Oxford', 'price': 90 },
-    { 'topic': 'math', 'location': 'Bristol', 'price': 120 },
-];
-
-let user = { 'email': 'user@email.com', 'password': 'mypassword' };
+async function getLessons() {
+    console.log("trying");
+  try {
+    // Connect the client to the server
+    await client.connect();
+    console.log("client connected to server");
+    return JSON.stringify(client.db('booking_system').collection('lesson').find());
+  } finally {
+    // Ensures that the client will close when you finish/error
+    await client.close();
+    console.log("client closed");
+  }
+}
 
 app.use(express.static('public'));
 
@@ -57,7 +51,7 @@ app.get("/test", function (request, response) {
 });
 
 app.get("/lessons", function (request, response) {
-    response.json(lessons);
+    response.json(getLessons());
 });
 
 app.get("/user", function (request, response) {
