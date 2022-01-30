@@ -1,5 +1,10 @@
 const express = require("express");
+// const cors = require("cors");
 const app = express();
+
+// app.use(express.json());
+// app.use(cors());
+
 const { MongoClient } = require("mongodb");
 // Connection URI
 const uri =
@@ -27,23 +32,23 @@ app.get('/', (req, res, next) => {
 });
 
 //GET all lessons
-app.get("/collection/:collectionName", function (request, response) {
-    response.json(getLessons('', request.collection));
+app.get("/collection/:collectionName", async (request, response) => {
+    response.json(await getLessons('', request.collection));
 });
 
 //GET lessons that match a search term
-app.get("/collection/:collectionName/:searchTerm", function (request, response) {
-    response.json(getLessons(request.searchTerm, request.collection));
+app.get("/collection/:collectionName/:searchTerm", async (request, response) => {
+    response.json(await getLessons(request.searchTerm, request.collection));
 });
 
 //POST(Create) a new order
-app.post("/collection/:collectionName", function (request, response) {
-    response.json(addOrder(request.body));
+app.post("/collection/:collectionName", async (request, response) => {
+    response.json(await addOrder(request.body));
 });
 
 //PUT(Update) existing lesson available spaces
-app.put("/collection/:collectionName/:id", function (request, response) {
-    response.json(updateLesson(request.body));
+app.put("/collection/:collectionName/:id", async (request, response) => {
+    response.json(await updateLesson(request.body));
 });
 
 app.use(function (request, response) {
@@ -85,7 +90,8 @@ async function getLessons(searchTerm, collectionName) {
     try {
         mongoCluster = await connectToCluster();
         mongoCollection = await openCollection(mongoCluster, collectionName);
-        console.log(await findLessonByName(mongoCollection, searchTerm));  
+        // console.log(await findLessonByName(mongoCollection, searchTerm));  
+        return await findLessonByName(mongoCollection, searchTerm);
     } finally {
         await mongoCluster.close();
         console.log("Cluster connection closed");
