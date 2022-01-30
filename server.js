@@ -43,7 +43,11 @@ app.get("/collection/:collectionName/:searchTerm", async (request, response) => 
 
 //POST(Create) a new order
 app.post("/collection/:collectionName", async (request, response) => {
-    response.json(await addOrder(request.body));
+    try{
+        response.json(await addOrder(request.body));
+    } catch (error) {
+        console.error(error);
+    }
 });
 
 //PUT(Update) existing lesson available spaces
