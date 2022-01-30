@@ -5,10 +5,15 @@ const { MongoClient } = require("mongodb");
 const uri =
   "mongodb+srv://admin:admin@us-cluster.oxa8f.mongodb.net/";
 
-app.use(express.static('public'));
+// app.use(express.static('public'));
 
 app.param('collectionName', (req, res, next, collectionName) => {
     req.collection = collectionName;
+    return next()
+});
+
+app.param('id', (req, res, next, id) => {
+    req.lessonId = id;
     return next()
 });
 
@@ -21,22 +26,24 @@ app.get('/', (req, res, next) => {
     res.send('Select a collection, e.g., /collection/lesson')
 });
 
+//GET all lessons
 app.get("/collection/:collectionName", function (request, response) {
     response.json(getLessons('', request.collection));
 });
 
+//GET lessons that match a search term
 app.get("/collection/:collectionName/:searchTerm", function (request, response) {
     response.json(getLessons(request.searchTerm, request.collection));
 });
 
-// should be app.post
-app.get("/post", function (request, response) {
-    response.json(addOrder());
+//POST(Create) a new order
+app.post("/collection/:collectionName", function (request, response) {
+    response.json(addOrder(request.body));
 });
 
-// should be app.put
-app.get("/put", function (request, response) {
-    response.json(updateOrder());
+//PUT(Update) existing lesson available spaces
+app.put("/collection/:collectionName/:id", function (request, response) {
+    response.json(updateLesson(request.body));
 });
 
 app.use(function (request, response) {
@@ -92,12 +99,12 @@ async function findLessonByName(collection, name) {
     return collection.find().toArray();
 }
 
-async function addOrder() {
+async function addOrder(orderContent) {
   let mongoCluster;
     try {
         mongoCluster = await connectToCluster();
         mongoCollection = await openCollection(mongoCluster, 'order');
-        console.log(await addNewOrder(mongoCollection, ""));  
+        console.log(await addNewOrder(mongoCollection, orderContent));  
     } finally {
         await mongoCluster.close();
         console.log("Cluster connection closed");
@@ -105,31 +112,31 @@ async function addOrder() {
 }
 
 async function addNewOrder(collection, content) {
-    const documentToAdd = {
-        name: 'Jim Barn',
-        phone_number: "7939575331",
-        lesson_id: "1002",
-        space: "2"
-    }
-    return collection.insertOne(documentToAdd);
+    // const documentToAdd = {
+    //     name: 'Jim Barn',
+    //     phone_number: "7939575331",
+    //     lesson_id: "1002",
+    //     space: "2"
+    // }
+    return collection.insertOne(content);
 }
 
-async function updateOrder() {
+async function updateLesson(contentToUpdate) {
     let mongoCluster;
       try {
           mongoCluster = await connectToCluster();
-          mongoCollection = await openCollection(mongoCluster, 'order');
-          console.log(await updateOrderName(mongoCollection, "1002", ""));  
+          mongoCollection = await openCollection(mongoCluster, 'lesson');
+          console.log(await updateLessonSpaces(mongoCollection, req.lessonId, contentToUpdate));  
       } finally {
           await mongoCluster.close();
           console.log("Cluster connection closed");
       }
   }
 
-async function updateOrderName(collection, lesson_id, content){
+async function updateLessonSpaces(collection, lesson_id, contentToUpdate){
     return collection.updateOne(
        { lesson_id },
-       { $set: {space:102}}
+       { $set: contentToUpdate}
    );
 }
 
