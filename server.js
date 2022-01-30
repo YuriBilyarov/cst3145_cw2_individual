@@ -53,7 +53,7 @@ app.post("/collection/:collectionName", async (request, response) => {
 //PUT(Update) existing lesson available spaces
 app.put("/collection/:collectionName/:id", async (request, response) => {
     try{
-        response.json(await updateLesson(request.body));
+        response.json(await updateLesson(request.lessonId, request.body));
     } catch (error) {
         console.error(error);
     }
@@ -132,17 +132,15 @@ async function addNewOrder(collection, content) {
     //     lesson_id: "1002",
     //     space: "2"
     // }
-    console.log("JSON to Add:");
-    console.log(content);
-    await collection.insertOne(content);
+    console.log(await collection.insertOne(content));
 }
 
-async function updateLesson(contentToUpdate) {
+async function updateLesson(lessonId, contentToUpdate) {
     let mongoCluster;
       try {
           mongoCluster = await connectToCluster();
           mongoCollection = await openCollection(mongoCluster, 'lesson');
-          console.log(await updateLessonSpaces(mongoCollection, req.lessonId, contentToUpdate));  
+          console.log(await updateLessonSpaces(mongoCollection, lessonId, contentToUpdate));  
       } finally {
           await mongoCluster.close();
           console.log("Cluster connection closed");
@@ -150,9 +148,9 @@ async function updateLesson(contentToUpdate) {
   }
 
 async function updateLessonSpaces(collection, lesson_id, contentToUpdate){
-    await collection.updateOne(
+    console.log(await collection.updateOne(
        { lesson_id },
        { $set: contentToUpdate}
-   );
+   ));
 }
 
