@@ -44,6 +44,8 @@ app.get("/collection/:collectionName/:searchTerm", async (request, response) => 
 //POST(Create) a new order
 app.post("/collection/:collectionName", async (request, response) => {
     try{
+        console.log("Request body:")
+        console.log(request.body)
         response.json(await addOrder(request.body));
     } catch (error) {
         console.error(error);
