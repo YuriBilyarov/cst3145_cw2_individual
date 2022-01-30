@@ -117,7 +117,7 @@ async function addOrder(orderContent) {
     try {
         mongoCluster = await connectToCluster();
         mongoCollection = await openCollection(mongoCluster, 'order');
-        console.log(await addNewOrder(mongoCollection, orderContent));  
+        return await addNewOrder(mongoCollection, orderContent);  
     } finally {
         await mongoCluster.close();
         console.log("Cluster connection closed");
@@ -125,7 +125,7 @@ async function addOrder(orderContent) {
 }
 
 async function addNewOrder(collection, content) {
-    console.log(await collection.insertOne(content));
+    return await collection.insertOne(content);
 }
 
 async function updateLesson(lessonId, contentToUpdate) {
@@ -133,7 +133,7 @@ async function updateLesson(lessonId, contentToUpdate) {
       try {
           mongoCluster = await connectToCluster();
           mongoCollection = await openCollection(mongoCluster, 'lesson');
-          console.log(await updateLessonSpaces(mongoCollection, lessonId, contentToUpdate));  
+          return await updateLessonSpaces(mongoCollection, lessonId, contentToUpdate);  
       } finally {
           await mongoCluster.close();
           console.log("Cluster connection closed");
@@ -141,9 +141,9 @@ async function updateLesson(lessonId, contentToUpdate) {
   }
 
 async function updateLessonSpaces(collection, id, contentToUpdate){
-    console.log(await collection.updateOne(
+    return await collection.updateOne(
        { id },
        { $set: contentToUpdate}
-   ));
+   );
 }
 
