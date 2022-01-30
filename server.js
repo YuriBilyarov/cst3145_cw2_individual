@@ -98,7 +98,6 @@ async function getLessons(searchTerm, collectionName) {
     try {
         mongoCluster = await connectToCluster();
         mongoCollection = await openCollection(mongoCluster, collectionName);
-        // console.log(await findLessonByName(mongoCollection, searchTerm));  
         return await findLessonByName(mongoCollection, searchTerm);
     } finally {
         await mongoCluster.close();
@@ -126,12 +125,6 @@ async function addOrder(orderContent) {
 }
 
 async function addNewOrder(collection, content) {
-    // const documentToAdd = {
-    //     name: 'Jim Barn',
-    //     phone_number: "7939575331",
-    //     lesson_id: "1002",
-    //     space: "2"
-    // }
     console.log(await collection.insertOne(content));
 }
 
@@ -147,9 +140,9 @@ async function updateLesson(lessonId, contentToUpdate) {
       }
   }
 
-async function updateLessonSpaces(collection, lesson_id, contentToUpdate){
+async function updateLessonSpaces(collection, id, contentToUpdate){
     console.log(await collection.updateOne(
-       { lesson_id },
+       { id },
        { $set: contentToUpdate}
    ));
 }
