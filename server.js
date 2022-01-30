@@ -1,64 +1,42 @@
 const express = require("express");
 const app = express();
-// const MongoClient = require("mongodb").MongoClient;
-
 const { MongoClient } = require("mongodb");
 // Connection URI
 const uri =
-  "mongodb+srv://admin:admin@us-cluster.oxa8f.mongodb.net/?useUnifiedTopology=false";
-// Create a new MongoClient
-const client = new MongoClient(uri);
-async function run() {
-    console.log("trying");
-  try {
-    // Connect the client to the server
-    await client.connect();
-    console.log("client connected to server");
-    await listDatabases(client);
-    console.log("client connectd to database");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
-    console.log("client closed");
-  }
-}
-
-async function listDatabases(client){
-    databasesList = await client.db().admin().listDatabases();
-    console.log("Databases:");
-    databasesList.databases.forEach(db => console.log(` - ${db.name}`));
-};
-
-async function getLessons() {
-    console.log("trying");
-  try {
-    // Connect the client to the server
-    await client.connect();
-    console.log("client connected to server");
-    console.log(JSON.stringify(client.db().admin().listDatabases()));
-    console.log(JSON.stringify(client.db('booking_system').listCollections()));
-    console.log(JSON.stringify(client.db('booking_system').collection('lesson').find()));
-    return JSON.stringify(client.db('booking_system').collection('lesson').find());
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
-    console.log("client closed");
-  }
-}
+  "mongodb+srv://admin:admin@us-cluster.oxa8f.mongodb.net/";
 
 app.use(express.static('public'));
 
-app.get("/test", function (request, response) {
-    run().catch(console.dir);
-    response.send("test")
+app.param('collectionName', (req, res, next, collectionName) => {
+    req.collection = collectionName;
+    return next()
 });
 
-app.get("/lessons", function (request, response) {
-    response.json(getLessons());
+app.param('searchTerm', (req, res, next, searchTerm) => {
+    req.searchTerm = searchTerm;
+    return next()
 });
 
-app.get("/user", function (request, response) {
-    response.json(user);
+app.get('/', (req, res, next) => {
+    res.send('Select a collection, e.g., /collection/lesson')
+});
+
+app.get("/collection/:collectionName", function (request, response) {
+    response.json(getLessons('', request.collection));
+});
+
+app.get("/collection/:collectionName/:searchTerm", function (request, response) {
+    response.json(getLessons(request.searchTerm, request.collection));
+});
+
+// should be app.post
+app.get("/post", function (request, response) {
+    response.json(addOrder());
+});
+
+// should be app.put
+app.get("/put", function (request, response) {
+    response.json(updateOrder());
 });
 
 app.use(function (request, response) {
@@ -66,3 +44,92 @@ app.use(function (request, response) {
 });
 
 app.listen(process.env.PORT || 3000);
+
+async function connectToCluster() {
+    let mongoClient;
+    try {
+        mongoClient = new MongoClient(uri);
+        console.log('Connecting to MongoDB Atlas cluster...');
+        await mongoClient.connect();
+        console.log('Successfully connected to MongoDB Atlas!');
+        return mongoClient;
+    } catch (error) {
+        console.error('Connection to MongoDB Atlas failed!', error);
+        process.exit();
+    }
+ }
+
+ async function openCollection(mongoCluster, collectionName){
+     let mongoCollection;
+     try{
+        const mongoDatabase = mongoCluster.db('booking_system');
+        console.log("Connected to database: booking_system");
+        mongoCollection = mongoDatabase.collection(collectionName);
+        console.log("Connected to collection: " + collectionName);
+        return mongoCollection;
+     } catch (error) {
+         console.error('Unable to open collection: ' + collectionName);
+         process.exit();
+     }
+ }
+
+async function getLessons(searchTerm, collectionName) {
+    let mongoCluster
+    try {
+        mongoCluster = await connectToCluster();
+        mongoCollection = await openCollection(mongoCluster, collectionName);
+        console.log(await findLessonByName(mongoCollection, searchTerm));  
+    } finally {
+        await mongoCluster.close();
+        console.log("Cluster connection closed");
+    }
+}
+
+async function findLessonByName(collection, name) {
+    if(name != ""){
+        return collection.find( {topic:name} ).toArray();
+    }
+    return collection.find().toArray();
+}
+
+async function addOrder() {
+  let mongoCluster;
+    try {
+        mongoCluster = await connectToCluster();
+        mongoCollection = await openCollection(mongoCluster, 'order');
+        console.log(await addNewOrder(mongoCollection, ""));  
+    } finally {
+        await mongoCluster.close();
+        console.log("Cluster connection closed");
+    }
+}
+
+async function addNewOrder(collection, content) {
+    const documentToAdd = {
+        name: 'Jim Barn',
+        phone_number: "7939575331",
+        lesson_id: "1002",
+        space: "2"
+    }
+    return collection.insertOne(documentToAdd);
+}
+
+async function updateOrder() {
+    let mongoCluster;
+      try {
+          mongoCluster = await connectToCluster();
+          mongoCollection = await openCollection(mongoCluster, 'order');
+          console.log(await updateOrderName(mongoCollection, "1002", ""));  
+      } finally {
+          await mongoCluster.close();
+          console.log("Cluster connection closed");
+      }
+  }
+
+async function updateOrderName(collection, lesson_id, content){
+    return collection.updateOne(
+       { lesson_id },
+       { $set: {space:102}}
+   );
+}
+
