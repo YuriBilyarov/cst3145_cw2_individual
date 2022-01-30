@@ -124,7 +124,7 @@ async function addNewOrder(collection, content) {
     //     lesson_id: "1002",
     //     space: "2"
     // }
-    return collection.insertOne(content);
+    await collection.insertOne(content);
 }
 
 async function updateLesson(contentToUpdate) {
@@ -140,7 +140,7 @@ async function updateLesson(contentToUpdate) {
   }
 
 async function updateLessonSpaces(collection, lesson_id, contentToUpdate){
-    return collection.updateOne(
+    await collection.updateOne(
        { lesson_id },
        { $set: contentToUpdate}
    );
