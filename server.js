@@ -128,6 +128,8 @@ async function addNewOrder(collection, content) {
     //     lesson_id: "1002",
     //     space: "2"
     // }
+    console.log("JSON to Add:");
+    console.log(content);
     await collection.insertOne(content);
 }
 
