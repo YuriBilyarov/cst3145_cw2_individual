@@ -97,8 +97,11 @@ async function getLessons(searchTerm, collectionName) {
     let mongoCluster
     try {
         mongoCluster = await connectToCluster();
-        mongoCollection = await openCollection(mongoCluster, collectionName);
-        return await findLessonByName(mongoCollection, searchTerm);
+        let mongoCollection = await openCollection(mongoCluster, collectionName);
+        
+        let jsonResponse = await findLessonByName(mongoCollection, searchTerm);
+        console.log(jsonResponse);
+        return jsonResponse;
     } finally {
         await mongoCluster.close();
         console.log("Cluster connection closed");
@@ -107,9 +110,10 @@ async function getLessons(searchTerm, collectionName) {
 
 async function findLessonByName(collection, name) {
     if(name != ""){
-        return collection.find( {topic:name} ).toArray();
+        let regex = new RegExp(name, "i");
+        return await collection.find({topic: {$regex:regex}}).toArray(); // can also sort here
     }
-    return collection.find().toArray();
+    return await collection.find().toArray();
 }
 
 async function addOrder(orderContent) {
