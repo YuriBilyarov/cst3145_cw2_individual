@@ -27,6 +27,16 @@ app.param('searchTerm', (req, res, next, searchTerm) => {
     return next()
 });
 
+app.param('sortBy', (req, res, next, sortBy) => {
+    req.sortBy = sortBy;
+    return next()
+});
+
+app.param('sortOrder', (req, res, next, sortOrder) => {
+    req.sortOrder = sortOrder;
+    return next()
+});
+
 app.get('/', (req, res, next) => {
     res.send('Select a collection, e.g., /collection/lesson')
 });
@@ -37,8 +47,8 @@ app.get("/collection/:collectionName", async (request, response) => {
 });
 
 //GET lessons that match a search term
-app.get("/collection/:collectionName/:searchTerm", async (request, response) => {
-    response.json(await getLessons(request.searchTerm, request.collection));
+app.get("/collection/:collectionName/:searchTerm/:sortBy/:sortOrder", async (request, response) => {
+    response.json(await getLessons(request.collection, request.searchTerm, request.sortBy, request.sortOrder));
 });
 
 //POST(Create) a new order
@@ -93,13 +103,13 @@ async function connectToCluster() {
      }
  }
 
-async function getLessons(searchTerm, collectionName) {
+async function getLessons(collectionName, searchTerm, sortBy, sortOrder) {
     let mongoCluster
     try {
         mongoCluster = await connectToCluster();
         let mongoCollection = await openCollection(mongoCluster, collectionName);
         
-        let jsonResponse = await findLessonByName(mongoCollection, searchTerm);
+        let jsonResponse = await findLessonByTopicOrLocation(mongoCollection, searchTerm, sortBy, sortOrder);
         console.log(jsonResponse);
         return jsonResponse;
     } finally {
@@ -108,19 +118,27 @@ async function getLessons(searchTerm, collectionName) {
     }
 }
 
-async function findLessonByName(collection, name) {
-    if(name != ""){
-        let regex = new RegExp(name, "i");
-        let topicSearch = await collection.find({topic: {$regex:regex}}).toArray(); 
-        if(topicSearch.length === 0){
-            let locationSearch = await collection.find({location: {$regex:regex}}).toArray();
-            return locationSearch;
-        } else {
-            return topicSearch;
+async function findLessonByTopicOrLocation(collection, searchTerm, sortByFieldName, sortOrderString ) {
+    if(searchTerm != ""){
+        let regex = new RegExp(searchTerm, "i");
+        let sortOrder = getSortOrder(sortOrderString);
+        try{
+            let topicSearch = await collection.find({topic: {$regex:regex}}, {sort:[[sortByFieldName, sortOrder]]}).toArray(); 
+            if(topicSearch.length === 0){
+                let locationSearch = await collection.find({location: {$regex:regex}}, {sort:[[sortByFieldName, sortOrder]]}).toArray();
+                return locationSearch;
+            } else {
+                return topicSearch;
+            }
+        } catch (error) {
+            console.error(error);
         }
-        // can also sort here
     }
     return await collection.find().toArray();
+}
+
+function getSortOrder(sortOrderString){
+    return (sortOrderString == "asc") ? 1 : (sortOrderString == "desc") ? -1 : 1 ;
 }
 
 async function addOrder(orderContent) {
