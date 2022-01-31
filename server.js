@@ -1,9 +1,9 @@
 const express = require("express");
-// const cors = require("cors");
+const cors = require("cors");
 const app = express();
 
 app.use(express.json());
-// app.use(cors());
+app.use(cors());
 
 const { MongoClient } = require("mongodb");
 // Connection URI
@@ -112,10 +112,8 @@ async function findLessonByName(collection, name) {
     if(name != ""){
         let regex = new RegExp(name, "i");
         let topicSearch = await collection.find({topic: {$regex:regex}}).toArray(); 
-        // console.log("topicSearch: " + topicSearch);
         if(topicSearch.length === 0){
             let locationSearch = await collection.find({location: {$regex:regex}}).toArray();
-            // console.log("locationSearch: " + locationSearch);
             return locationSearch;
         } else {
             return topicSearch;
