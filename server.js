@@ -108,7 +108,6 @@ async function getLessons(collectionName, searchTerm, sortBy, sortOrder) {
     try {
         mongoCluster = await connectToCluster();
         let mongoCollection = await openCollection(mongoCluster, collectionName);
-        
         let jsonResponse = await findLessonByTopicOrLocation(mongoCollection, searchTerm, sortBy, sortOrder);
         console.log(jsonResponse);
         return jsonResponse;
