@@ -43,7 +43,7 @@ app.get('/', (req, res, next) => {
 
 //GET all lessons
 app.get("/collection/:collectionName", async (request, response) => {
-    response.json(await getLessons('', request.collection));
+    response.json(await getLessons(request.collection, ''));
 });
 
 //GET lessons that match a search term
@@ -94,6 +94,7 @@ async function connectToCluster() {
      try{
         const mongoDatabase = mongoCluster.db('booking_system');
         console.log("Connected to database: booking_system");
+        console.log("collection: " + collectionName);
         mongoCollection = mongoDatabase.collection(collectionName);
         console.log("Connected to collection: " + collectionName);
         return mongoCollection;
