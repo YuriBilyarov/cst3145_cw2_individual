@@ -111,7 +111,16 @@ async function getLessons(searchTerm, collectionName) {
 async function findLessonByName(collection, name) {
     if(name != ""){
         let regex = new RegExp(name, "i");
-        return await collection.find({topic: {$regex:regex}}).toArray(); // can also sort here
+        let topicSearch = await collection.find({topic: {$regex:regex}}).toArray(); 
+        // console.log("topicSearch: " + topicSearch);
+        if(topicSearch.length === 0){
+            let locationSearch = await collection.find({location: {$regex:regex}}).toArray();
+            // console.log("locationSearch: " + locationSearch);
+            return locationSearch;
+        } else {
+            return topicSearch;
+        }
+        // can also sort here
     }
     return await collection.find().toArray();
 }
