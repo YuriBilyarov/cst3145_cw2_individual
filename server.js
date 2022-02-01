@@ -49,7 +49,7 @@ app.param('sortOrder', (req, res, next, sortOrder) => {
 });
 
 app.get('/', (req, res, next) => {
-    res.send('Select a collection, e.g., /collection/lesson')
+    res.send('Select a collection, e.g., /collection/lesson/price/asc')
 });
 
 //GET all lessons
