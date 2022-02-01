@@ -54,7 +54,7 @@ app.get('/', (req, res, next) => {
 
 //GET all lessons
 app.get("/collection/:collectionName/:sortBy/:sortOrder", async (req, res) => {
-    res.json(await getLessons(req.collection, '', req.sortBy, req.sortOrder));
+    res.json(await getLessons(req.collection, "", req.sortBy, req.sortOrder));
 });
 
 //GET lessons that match a search term
