@@ -129,9 +129,9 @@ async function getLessons(collectionName, searchTerm, sortBy, sortOrder) {
 }
 
 async function findLessonByTopicOrLocation(collection, searchTerm, sortByFieldName, sortOrderString) {
+    let regex = new RegExp(searchTerm, "i");
+    let sortOrder = getSortOrder(sortOrderString);
     if (searchTerm != "") {
-        let regex = new RegExp(searchTerm, "i");
-        let sortOrder = getSortOrder(sortOrderString);
         try {
             let topicSearch = await collection.find({ topic: { $regex: regex } }, { sort: [[sortByFieldName, sortOrder]] }).toArray();
             if (topicSearch.length === 0) {
@@ -143,9 +143,7 @@ async function findLessonByTopicOrLocation(collection, searchTerm, sortByFieldNa
         } catch (error) {
             console.error(error);
         }
-    } else {
-        
-    }
+    } 
     return await collection.find({}, { sort: [[sortByFieldName, sortOrder]] }).toArray();
 }
 
