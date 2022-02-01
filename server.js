@@ -53,8 +53,8 @@ app.get('/', (req, res, next) => {
 });
 
 //GET all lessons
-app.get("/collection/:collectionName", async (req, res) => {
-    res.json(await getLessons(req.collection, ''));
+app.get("/collection/:collectionName/:sortBy/:sortOrder", async (req, res) => {
+    res.json(await getLessons(req.collection, '', req.sortBy, req.sortOrder));
 });
 
 //GET lessons that match a search term
@@ -143,8 +143,10 @@ async function findLessonByTopicOrLocation(collection, searchTerm, sortByFieldNa
         } catch (error) {
             console.error(error);
         }
+    } else {
+        
     }
-    return await collection.find().toArray();
+    return await collection.find({}, { sort: [[sortByFieldName, sortOrder]] }).toArray();
 }
 
 function getSortOrder(sortOrderString) {
