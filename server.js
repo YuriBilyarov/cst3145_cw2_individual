@@ -133,7 +133,6 @@ async function findLessonByTopicOrLocation(collection, searchTerm, sortByFieldNa
     let sortOrder = getSortOrder(sortOrderString);
     if (searchTerm != "") {
         try {
-            console.log("returned with search term: " + searchTerm);
             let topicSearch = await collection.find({ topic: { $regex: regex } }, { sort: [[sortByFieldName, sortOrder]] }).toArray();
             if (topicSearch.length === 0) {
                 let locationSearch = await collection.find({ location: { $regex: regex } }, { sort: [[sortByFieldName, sortOrder]] }).toArray();
@@ -145,7 +144,6 @@ async function findLessonByTopicOrLocation(collection, searchTerm, sortByFieldNa
             console.error(error);
         }
     } 
-    console.log("returned all");
     return await collection.find({}, { sort: [[sortByFieldName, sortOrder]] }).toArray();
 }
 
@@ -187,4 +185,3 @@ async function updateLessonSpaces(collection, id, contentToUpdate) {
         { $set: contentToUpdate }
     );
 }
-
