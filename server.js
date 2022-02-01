@@ -8,9 +8,20 @@ app.use(cors());
 const { MongoClient } = require("mongodb");
 // Connection URI
 const uri =
-  "mongodb+srv://admin:admin@us-cluster.oxa8f.mongodb.net/";
+    "mongodb+srv://admin:admin@us-cluster.oxa8f.mongodb.net/";
 
-// app.use(express.static('public'));
+app.use(express.static('static'));
+
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "*");
+    next();
+});
+
+app.use((req, res, next) => {
+    console.log("Incoming request for: " + req.url + " | Timestamp: " + new Date());
+    next();
+});
 
 app.param('collectionName', (req, res, next, collectionName) => {
     req.collection = collectionName;
@@ -42,38 +53,38 @@ app.get('/', (req, res, next) => {
 });
 
 //GET all lessons
-app.get("/collection/:collectionName", async (request, response) => {
-    response.json(await getLessons(request.collection, ''));
+app.get("/collection/:collectionName", async (req, res) => {
+    res.json(await getLessons(req.collection, ''));
 });
 
 //GET lessons that match a search term
-app.get("/collection/:collectionName/:searchTerm/:sortBy/:sortOrder", async (request, response) => {
-    response.json(await getLessons(request.collection, request.searchTerm, request.sortBy, request.sortOrder));
+app.get("/collection/:collectionName/:searchTerm/:sortBy/:sortOrder", async (req, res) => {
+    res.json(await getLessons(req.collection, req.searchTerm, req.sortBy, req.sortOrder));
 });
 
 //POST(Create) a new order
-app.post("/collection/:collectionName", async (request, response) => {
-    try{
-        response.json(await addOrder(request.body));
+app.post("/collection/:collectionName", async (req, res) => {
+    try {
+        res.json(await addOrder(req.body));
     } catch (error) {
         console.error(error);
     }
 });
 
 //PUT(Update) existing lesson available spaces
-app.put("/collection/:collectionName/:id", async (request, response) => {
-    try{
-        response.json(await updateLesson(request.lessonId, request.body));
+app.put("/collection/:collectionName/:id", async (req, res) => {
+    try {
+        res.json(await updateLesson(req.lessonId, req.body));
     } catch (error) {
         console.error(error);
     }
 });
 
-app.use(function (request, response) {
-    response.status(404).send("Page not found!");
+app.use(function (req, res) {
+    res.status(404).send("Resource not found!");
 });
 
-app.listen(process.env.PORT || 3000);
+app.listen(process.env.PORT || 3000, () => { let port = process.env.PORT || 3000; console.log("App started on port: " + port) });
 
 async function connectToCluster() {
     let mongoClient;
@@ -87,22 +98,21 @@ async function connectToCluster() {
         console.error('Connection to MongoDB Atlas failed!', error);
         process.exit();
     }
- }
+}
 
- async function openCollection(mongoCluster, collectionName){
-     let mongoCollection;
-     try{
+async function openCollection(mongoCluster, collectionName) {
+    let mongoCollection;
+    try {
         const mongoDatabase = mongoCluster.db('booking_system');
         console.log("Connected to database: booking_system");
-        console.log("collection: " + collectionName);
         mongoCollection = mongoDatabase.collection(collectionName);
         console.log("Connected to collection: " + collectionName);
         return mongoCollection;
-     } catch (error) {
-         console.error('Unable to open collection: ' + collectionName);
-         process.exit();
-     }
- }
+    } catch (error) {
+        console.error('Unable to open collection: ' + collectionName);
+        process.exit();
+    }
+}
 
 async function getLessons(collectionName, searchTerm, sortBy, sortOrder) {
     let mongoCluster
@@ -118,14 +128,14 @@ async function getLessons(collectionName, searchTerm, sortBy, sortOrder) {
     }
 }
 
-async function findLessonByTopicOrLocation(collection, searchTerm, sortByFieldName, sortOrderString ) {
-    if(searchTerm != ""){
+async function findLessonByTopicOrLocation(collection, searchTerm, sortByFieldName, sortOrderString) {
+    if (searchTerm != "") {
         let regex = new RegExp(searchTerm, "i");
         let sortOrder = getSortOrder(sortOrderString);
-        try{
-            let topicSearch = await collection.find({topic: {$regex:regex}}, {sort:[[sortByFieldName, sortOrder]]}).toArray(); 
-            if(topicSearch.length === 0){
-                let locationSearch = await collection.find({location: {$regex:regex}}, {sort:[[sortByFieldName, sortOrder]]}).toArray();
+        try {
+            let topicSearch = await collection.find({ topic: { $regex: regex } }, { sort: [[sortByFieldName, sortOrder]] }).toArray();
+            if (topicSearch.length === 0) {
+                let locationSearch = await collection.find({ location: { $regex: regex } }, { sort: [[sortByFieldName, sortOrder]] }).toArray();
                 return locationSearch;
             } else {
                 return topicSearch;
@@ -137,16 +147,16 @@ async function findLessonByTopicOrLocation(collection, searchTerm, sortByFieldNa
     return await collection.find().toArray();
 }
 
-function getSortOrder(sortOrderString){
-    return (sortOrderString == "asc") ? 1 : (sortOrderString == "desc") ? -1 : 1 ;
+function getSortOrder(sortOrderString) {
+    return (sortOrderString == "asc") ? 1 : (sortOrderString == "desc") ? -1 : 1;
 }
 
 async function addOrder(orderContent) {
-  let mongoCluster;
+    let mongoCluster;
     try {
         mongoCluster = await connectToCluster();
         mongoCollection = await openCollection(mongoCluster, 'order');
-        return await addNewOrder(mongoCollection, orderContent);  
+        return await addNewOrder(mongoCollection, orderContent);
     } finally {
         await mongoCluster.close();
         console.log("Cluster connection closed");
@@ -159,20 +169,20 @@ async function addNewOrder(collection, content) {
 
 async function updateLesson(lessonId, contentToUpdate) {
     let mongoCluster;
-      try {
-          mongoCluster = await connectToCluster();
-          mongoCollection = await openCollection(mongoCluster, 'lesson');
-          return await updateLessonSpaces(mongoCollection, lessonId, contentToUpdate);  
-      } finally {
-          await mongoCluster.close();
-          console.log("Cluster connection closed");
-      }
-  }
+    try {
+        mongoCluster = await connectToCluster();
+        mongoCollection = await openCollection(mongoCluster, 'lesson');
+        return await updateLessonSpaces(mongoCollection, lessonId, contentToUpdate);
+    } finally {
+        await mongoCluster.close();
+        console.log("Cluster connection closed");
+    }
+}
 
-async function updateLessonSpaces(collection, id, contentToUpdate){
+async function updateLessonSpaces(collection, id, contentToUpdate) {
     return await collection.updateOne(
-       { id },
-       { $set: contentToUpdate}
-   );
+        { id },
+        { $set: contentToUpdate }
+    );
 }
 
